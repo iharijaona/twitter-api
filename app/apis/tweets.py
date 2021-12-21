@@ -1,14 +1,19 @@
 # pylint: disable=missing-docstring
 
+from app.models import Tweet
 from flask_restx import Namespace, Resource, fields
 from app.db import tweet_repository
 
 api = Namespace('tweets')
 
 TweetModel = api.model('Tweet', {
-    'id': fields.Integer,
-    'text': fields.String,
-    'created_at': fields.DateTime
+    'id': fields.Integer(required=True),
+    'text': fields.String(required=True),
+    'created_at': fields.DateTime(required=True),
+})
+
+TweetInput = api.model('TweetInput', {
+    'text': fields.String(required=True),
 })
 
 
@@ -16,7 +21,7 @@ TweetModel = api.model('Tweet', {
 @api.response(404, 'Tweet not found')
 @api.param('id', 'The tweet unique identifier')
 class TweetResource(Resource):
-    @api.doc('get_cat')
+    @api.doc('get_tweet')
     @api.marshal_with(TweetModel)
     def get(self, id):
         tweet = tweet_repository.get(id)
@@ -28,7 +33,15 @@ class TweetResource(Resource):
 
 @api.route('/')
 class TweetListResource(Resource):
-    @api.doc('list_cats')
+    @api.doc('list_tweets')
     @api.marshal_list_with(TweetModel)
     def get(self):
+        '''List all tweets'''
         return tweet_repository.tweets
+
+    @api.doc('create_tweet')
+    @api.expect(TweetInput)
+    @api.marshal_with(TweetModel, code=201)
+    def post(self):
+        '''Create a new tweet'''
+        return tweet_repository.add(Tweet(api.payload['text'])), 201
