@@ -16,6 +16,7 @@ TweetModel = api.model('Tweet', {
 @api.response(404, 'Tweet not found')
 @api.param('id', 'The tweet unique identifier')
 class TweetResource(Resource):
+    @api.doc('get_cat')
     @api.marshal_with(TweetModel)
     def get(self, id):
         tweet = tweet_repository.get(id)
@@ -23,3 +24,11 @@ class TweetResource(Resource):
             api.abort(404)
         else:
             return tweet
+
+
+@api.route('/')
+class TweetListResource(Resource):
+    @api.doc('list_cats')
+    @api.marshal_list_with(TweetModel)
+    def get(self):
+        return tweet_repository.tweets
